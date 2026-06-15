@@ -6,15 +6,14 @@
  * ============================================
  * 
  * DEPLOYMENT INSTRUCTIONS:
- * 1. Save this file as: api.php
- * 2. Upload to: C:\wamp64\www\lifefirst\api.php
- * 3. Set permissions: Read/Write for PHP
- * 4. Test URL: http://YOUR_SERVER_IP/lifefirst/api.php
- * 
+ * 1. Run deploy_lifefirst.sh on phoenix-ext
+ * 2. Deployed to: /var/www/html/lifefirst/api.php
+ * 3. Test URL: http://192.168.1.133/lifefirst/api.php
+ *
  * REQUIRED:
- * - Module 1 (Database) must be installed first
- * - PHP 7.4+ with mysqli extension
- * - Claude API key (you'll add in Module 3+)
+ * - Module 1 (Database) must be installed first (deploy_lifefirst.sh handles this)
+ * - PHP 8.0+ with mysqli extension
+ * - Credentials in /etc/lifefirst/lifefirst.env
  * 
  * ============================================
  */
@@ -36,16 +35,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // ============================================
-// CONFIGURATION
+// CONFIGURATION — from /etc/lifefirst/lifefirst.env via Apache SetEnv
 // ============================================
 
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');  // Change if you have different MySQL user
-define('DB_PASS', '');      // Add your MySQL password if you have one
-define('DB_NAME', 'lifefirst');
+define('DB_HOST', getenv('LF_DB_HOST') ?: 'localhost');
+define('DB_USER', getenv('LF_DB_USER') ?: 'lifefirst');
+define('DB_PASS', getenv('LF_DB_PASS') ?: '');
+define('DB_NAME', getenv('LF_DB_NAME') ?: 'lifefirst');
 
-// Simple authentication token (change this!)
-define('API_SECRET', 'your_secret_token_change_me_12345');
+define('API_SECRET', getenv('LF_API_SECRET') ?: '');
 
 // AI Module paths (we'll create these in modules 3-7)
 define('AI_SCHEDULE_PATH', __DIR__ . '/ai/ai_schedule.php');

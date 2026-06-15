@@ -6,9 +6,9 @@
  * ============================================
  * 
  * DEPLOYMENT:
- * 1. Save as: ai_notifications.php
- * 2. Upload to: C:\wamp64\www\lifefirst\ai\ai_notifications.php
- * 3. Add Claude API key (same as others)
+ * 1. Run deploy_lifefirst.sh on phoenix-ext
+ * 2. Deployed to: /var/www/html/lifefirst/ai/ai_notifications.php
+ * 3. API key set via /etc/lifefirst/lifefirst.env (CLAUDE_API_KEY)
  * 
  * FEATURES:
  * - Send urgent notifications
@@ -20,28 +20,14 @@
  */
 
 // ============================================
-// CONFIGURATION
+// CONFIGURATION — credentials + model from config.php
 // ============================================
 
-define('CLAUDE_API_KEY', 'YOUR_CLAUDE_API_KEY_HERE');
-define('CLAUDE_MODEL', 'claude-sonnet-4-5-20250929');
+require_once __DIR__ . '/config.php';
 
 // Escalation settings
 define('MAX_ESCALATION_LEVEL', 5);
 define('ESCALATION_INTERVAL_SECONDS', 30);  // Repeat every 30 seconds if not answered
-
-// ============================================
-// DATABASE CONNECTION
-// ============================================
-
-function getDB() {
-    $conn = new mysqli('localhost', 'root', '', 'lifefirst');
-    if ($conn->connect_error) {
-        die(json_encode(['status' => 'error', 'message' => 'Database connection failed']));
-    }
-    $conn->set_charset('utf8mb4');
-    return $conn;
-}
 
 // ============================================
 // MAIN HANDLER

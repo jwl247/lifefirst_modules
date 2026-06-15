@@ -25,29 +25,15 @@
  */
 
 // ============================================
-// CONFIGURATION
+// CONFIGURATION — credentials + model from config.php
 // ============================================
 
-define('CLAUDE_API_KEY', 'YOUR_CLAUDE_API_KEY_HERE');
-define('CLAUDE_MODEL', 'claude-sonnet-4-20250514');
+require_once __DIR__ . '/config.php';
 
 // Temperature presets
 define('TEMP_PRECISE', 0.2);    // Exact recall
 define('TEMP_BALANCED', 0.5);   // Natural conversation
 define('TEMP_CREATIVE', 0.8);   // Suggestions & ideas
-
-// ============================================
-// DATABASE CONNECTION
-// ============================================
-
-function getDB() {
-    $conn = new mysqli('localhost', 'root', '', 'lifefirst');
-    if ($conn->connect_error) {
-        die(json_encode(['status' => 'error', 'message' => 'Database connection failed']));
-    }
-    $conn->set_charset('utf8mb4');
-    return $conn;
-}
 
 // ============================================
 // MAIN HANDLER

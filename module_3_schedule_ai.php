@@ -6,9 +6,9 @@
  * ============================================
  * 
  * DEPLOYMENT:
- * 1. Save as: ai_schedule.php
- * 2. Upload to: C:\wamp64\www\lifefirst\ai\ai_schedule.php
- * 3. Add your Claude API key on line 25
+ * 1. Run deploy_lifefirst.sh on phoenix-ext
+ * 2. Deployed to: /var/www/html/lifefirst/ai/ai_schedule.php
+ * 3. API key set via /etc/lifefirst/lifefirst.env (CLAUDE_API_KEY)
  * 
  * FEATURES:
  * - Check availability ("Am I free at 3pm?")
@@ -20,24 +20,10 @@
  */
 
 // ============================================
-// CONFIGURATION
+// CONFIGURATION — credentials + model from config.php
 // ============================================
 
-define('CLAUDE_API_KEY', 'YOUR_CLAUDE_API_KEY_HERE');  // ADD YOUR KEY HERE!
-define('CLAUDE_MODEL', 'claude-sonnet-4-5-20250929');
-
-// ============================================
-// DATABASE CONNECTION
-// ============================================
-
-function getDB() {
-    $conn = new mysqli('localhost', 'root', '', 'lifefirst');
-    if ($conn->connect_error) {
-        die(json_encode(['status' => 'error', 'message' => 'Database connection failed']));
-    }
-    $conn->set_charset('utf8mb4');
-    return $conn;
-}
+require_once __DIR__ . '/config.php';
 
 // ============================================
 // MAIN HANDLER

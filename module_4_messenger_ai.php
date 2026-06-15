@@ -6,9 +6,9 @@
  * ============================================
  * 
  * DEPLOYMENT:
- * 1. Save as: ai_messenger.php
- * 2. Upload to: C:\wamp64\www\lifefirst\ai\ai_messenger.php
- * 3. Uses same Claude API key from Module 3
+ * 1. Run deploy_lifefirst.sh on phoenix-ext
+ * 2. Deployed to: /var/www/html/lifefirst/ai/ai_messenger.php
+ * 3. API key set via /etc/lifefirst/lifefirst.env (CLAUDE_API_KEY)
  * 
  * FEATURES:
  * - Ask questions to other person
@@ -20,24 +20,10 @@
  */
 
 // ============================================
-// CONFIGURATION
+// CONFIGURATION — credentials + model from config.php
 // ============================================
 
-define('CLAUDE_API_KEY', 'YOUR_CLAUDE_API_KEY_HERE');  // SAME AS MODULE 3
-define('CLAUDE_MODEL', 'claude-sonnet-4-5-20250929');
-
-// ============================================
-// DATABASE CONNECTION
-// ============================================
-
-function getDB() {
-    $conn = new mysqli('localhost', 'root', '', 'lifefirst');
-    if ($conn->connect_error) {
-        die(json_encode(['status' => 'error', 'message' => 'Database connection failed']));
-    }
-    $conn->set_charset('utf8mb4');
-    return $conn;
-}
+require_once __DIR__ . '/config.php';
 
 // ============================================
 // MAIN HANDLER
