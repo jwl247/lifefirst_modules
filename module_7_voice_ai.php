@@ -88,7 +88,12 @@ PROMPT;
 
     $messages[] = ['role' => 'user', 'content' => $message];
 
-    $response = callClaude($system, $messages);
+    // Try Ollama first (local llama3.1:8b, zero cost), fall back to Claude
+    $response = callOllama($system, $messages);
+    if (isset($response['error'])) {
+        $response = callClaude($system, $messages);
+        $response['source'] = 'claude';
+    }
 
     // Log interaction
     $aiResponse = $response['content'] ?? 'No response';
@@ -110,6 +115,7 @@ PROMPT;
         'intent'   => $intent,
         'response' => $aiResponse,
         'user'     => $displayName,
+        'ai'       => $response['source'] ?? 'ollama',
     ];
 }
 
