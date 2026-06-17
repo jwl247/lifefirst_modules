@@ -21,7 +21,7 @@ if (!defined('OLLAMA_URL')) {
     define('OLLAMA_URL', getenv('OLLAMA_URL') ?: 'http://localhost:11434');
 }
 if (!defined('OLLAMA_MODEL_LIFEFIRST')) {
-    define('OLLAMA_MODEL_LIFEFIRST', getenv('OLLAMA_MODEL_LIFEFIRST') ?: 'llama3.1:8b');
+    define('OLLAMA_MODEL_LIFEFIRST', getenv('OLLAMA_MODEL_LIFEFIRST') ?: 'llama3.1');
 }
 
 if (!function_exists('callOllama')) {
