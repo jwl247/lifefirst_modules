@@ -45,12 +45,28 @@ define('DB_NAME', getenv('LF_DB_NAME') ?: 'lifefirst');
 
 define('API_SECRET', getenv('LF_API_SECRET') ?: '');
 
-// AI Module paths (we'll create these in modules 3-7)
-define('AI_SCHEDULE_PATH', __DIR__ . '/ai/ai_schedule.php');
-define('AI_MESSENGER_PATH', __DIR__ . '/ai/ai_messenger.php');
-define('AI_MEMORY_PATH', __DIR__ . '/ai/ai_memory.php');
-define('AI_NOTIFICATION_PATH', __DIR__ . '/ai/ai_notifications.php');
-define('AI_VOICE_PATH', __DIR__ . '/ai/ai_voice.php');
+// AI Module paths — modules live in the same directory as the API router.
+// The ai/ subdir alias is kept as a fallback so old deployments don't break.
+define('AI_SCHEDULE_PATH',     file_exists(__DIR__ . '/module_3_schedule_ai.php')
+    ? __DIR__ . '/module_3_schedule_ai.php'
+    : __DIR__ . '/ai/ai_schedule.php');
+define('AI_MESSENGER_PATH',    file_exists(__DIR__ . '/module_4_messenger_ai.php')
+    ? __DIR__ . '/module_4_messenger_ai.php'
+    : __DIR__ . '/ai/ai_messenger.php');
+define('AI_MEMORY_PATH',       file_exists(__DIR__ . '/module_5_ai_memory.php')
+    ? __DIR__ . '/module_5_ai_memory.php'
+    : __DIR__ . '/ai/ai_memory.php');
+define('AI_NOTIFICATION_PATH', file_exists(__DIR__ . '/module_6_notification_ai.php')
+    ? __DIR__ . '/module_6_notification_ai.php'
+    : __DIR__ . '/ai/ai_notifications.php');
+define('AI_VOICE_PATH',        file_exists(__DIR__ . '/module_7_voice_ai.php')
+    ? __DIR__ . '/module_7_voice_ai.php'
+    : __DIR__ . '/ai/ai_voice.php');
+
+// Shared config (Ollama model ladder, callOllama, getDB)
+if (!defined('CLAUDE_API_KEY')) {
+    require_once __DIR__ . '/config.php';
+}
 
 // ============================================
 // DATABASE CONNECTION

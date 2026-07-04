@@ -24,8 +24,41 @@ if (!defined('OLLAMA_MODEL_LIFEFIRST')) {
     define('OLLAMA_MODEL_LIFEFIRST', getenv('OLLAMA_MODEL_LIFEFIRST') ?: 'llama3.1');
 }
 
+if (!function_exists('ollamaModelForIntent')) {
+    /**
+     * Pick the right model size for the given AI intent.
+     * Phoenix LLM engine handles paged-vRAM so large models run even on
+     * constrained hardware — this just sets the preference.
+     *
+     * @param string $intent  schedule|messenger|memory|notification|voice|general
+     * @return string  Ollama model name
+     */
+    function ollamaModelForIntent(string $intent): string {
+        $map = [
+            'memory'       => OLLAMA_MODEL_LARGE,   // deep recall needs the big model
+            'schedule'     => OLLAMA_MODEL_MEDIUM,
+            'messenger'    => OLLAMA_MODEL_MEDIUM,
+            'voice'        => OLLAMA_MODEL_MEDIUM,
+            'notification' => OLLAMA_MODEL_SMALL,
+            'general'      => OLLAMA_MODEL_SMALL,
+        ];
+        return $map[$intent] ?? OLLAMA_MODEL_MEDIUM;
+    }
+}
+
 if (!function_exists('callOllama')) {
-    function callOllama(string $system, array $messages, string $model = OLLAMA_MODEL_LIFEFIRST): array {
+    /**
+     * Call Ollama /api/generate.
+     * Falls back down the model size ladder automatically if the preferred
+     * model is not available (Phoenix paged-vRAM handles oversized models).
+     *
+     * @param string $system    System prompt
+     * @param array  $messages  Conversation turns [{role, content}]
+     * @param string $model     Model name (use ollamaModelForIntent() for auto-select)
+     * @param int    $maxTokens Max tokens to generate (default 1024)
+     * @return array  {content: string, source: 'ollama'} | {error: string}
+     */
+    function callOllama(string $system, array $messages, string $model = OLLAMA_MODEL_LIFEFIRST, int $maxTokens = 1024): array {
         $context = '';
         foreach (array_slice($messages, 0, -1) as $turn) {
             $role = $turn['role'] === 'assistant' ? 'Assistant' : 'User';
@@ -41,8 +74,12 @@ if (!function_exists('callOllama')) {
             'prompt' => $prompt,
             'system' => $system,
             'stream' => false,
-            'options' => ['temperature' => 0.7, 'num_predict' => 512],
+            'options' => ['temperature' => 0.7, 'num_predict' => $maxTokens],
         ]);
+
+        // Timeout scales with model size — large models need more time to generate
+        $timeoutSec = str_contains($model, '70b') ? 300 :
+                      (str_contains($model, '8b')  ? 120 : 60);
 
         $ch = curl_init(OLLAMA_URL . '/api/generate');
         curl_setopt_array($ch, [
@@ -50,8 +87,8 @@ if (!function_exists('callOllama')) {
             CURLOPT_POST           => true,
             CURLOPT_POSTFIELDS     => $payload,
             CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
-            CURLOPT_TIMEOUT        => 60,
-            CURLOPT_CONNECTTIMEOUT => 3,
+            CURLOPT_TIMEOUT        => $timeoutSec,
+            CURLOPT_CONNECTTIMEOUT => 5,
         ]);
 
         $raw    = curl_exec($ch);
@@ -60,11 +97,17 @@ if (!function_exists('callOllama')) {
         curl_close($ch);
 
         if ($err || $status !== 200) {
-            return ['error' => $err ?: "Ollama HTTP {$status}"];
+            // Try one step down the ladder before giving up
+            $fallback = ($model === OLLAMA_MODEL_LARGE)  ? OLLAMA_MODEL_MEDIUM :
+                        (($model === OLLAMA_MODEL_MEDIUM) ? OLLAMA_MODEL_SMALL : null);
+            if ($fallback && $fallback !== $model) {
+                return callOllama($system, $messages, $fallback, $maxTokens);
+            }
+            return ['error' => $err ?: "Ollama HTTP {$status}", 'model' => $model];
         }
 
         $data = json_decode($raw, true);
-        return ['content' => $data['response'] ?? '', 'source' => 'ollama'];
+        return ['content' => $data['response'] ?? '', 'source' => 'ollama', 'model' => $model];
     }
 }
 

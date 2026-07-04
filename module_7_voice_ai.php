@@ -88,8 +88,11 @@ PROMPT;
 
     $messages[] = ['role' => 'user', 'content' => $message];
 
-    // Try Ollama first (local llama3.1:8b, zero cost), fall back to Claude
-    $response = callOllama($system, $messages);
+    // Pick model size by intent — memory gets the large model, voice gets medium
+    $model    = ollamaModelForIntent($intent);
+
+    // Try Ollama first (local, zero cost, paged-vRAM handles big models), fall back to Claude
+    $response = callOllama($system, $messages, $model);
     if (isset($response['error'])) {
         $response = callClaude($system, $messages);
         $response['source'] = 'claude';
